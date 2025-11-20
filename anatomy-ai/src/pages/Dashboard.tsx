@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Navbar } from '../components/Navbar';
-// Make sure this component exists in src/components/AnatomyScene.tsx
-import { AnatomyScene } from '../components/AnatomyScene'; 
+// Import the Ref type so TypeScript knows what functions exist
+import { AnatomyScene, type AnatomySceneRef } from '../components/AnatomyScene';
 
+// ... (Keep your existing SystemInfo type and systemsData object exactly as they were) ...
 // 1. Define the data structure for your systems
 type SystemInfo = {
   title: string;
@@ -17,7 +18,7 @@ const systemsData: Record<string, SystemInfo> = {
     title: "Human Skeleton",
     system: "Skeletal System",
     description: "The internal framework of the human body. It is composed of around 270 bones at birth – this total decreases to around 206 bones by adulthood after some bones get fused together.",
-    modelUrl: "https://cdn.pixabay.com/photo/2012/04/13/13/18/skeleton-32378_1280.png",
+    modelUrl: "/models/skeleton.glb",
     icon: "skeleton"
   },
   Muscular: {
@@ -53,18 +54,39 @@ const systemsData: Record<string, SystemInfo> = {
 
 const Dashboard: React.FC = () => {
   const [activeSystem, setActiveSystem] = useState<string>('Skeletal');
-  
   const currentData = systemsData[activeSystem];
-
-  // Helper to check if the current item is a 3D model
   const is3DModel = currentData.modelUrl.endsWith('.glb') || currentData.modelUrl.endsWith('.gltf');
+
+  // 1. Create a Ref to control the scene
+  const sceneRef = useRef<AnatomySceneRef>(null);
+
+  // 2. Button Handlers
+  const handleRotate = () => {
+    if (is3DModel) sceneRef.current?.rotate();
+  };
+  
+  const handleZoomIn = () => {
+    if (is3DModel) {
+        sceneRef.current?.zoomIn();
+    } else {
+        // Optional: Add simple CSS zoom logic for images here if desired
+    }
+  };
+
+  const handleZoomOut = () => {
+    if (is3DModel) sceneRef.current?.zoomOut();
+  };
+
+  const handleReset = () => {
+    if (is3DModel) sceneRef.current?.reset();
+  };
 
   return (
     <div className="flex flex-col h-screen bg-background-dark">
       <Navbar />
       <div className="flex flex-1 overflow-hidden">
         
-        {/* Left Sidebar: Systems */}
+        {/* Left Sidebar */}
         <aside className="w-64 border-r border-white/10 p-4 flex flex-col gap-6 bg-card-dark/50">
           <div>
             <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-4">Systems</h2>
@@ -89,23 +111,15 @@ const Dashboard: React.FC = () => {
           </div>
         </aside>
 
-        {/* Center: 3D Viewer Area or 2D Image */}
+        {/* Main Viewer */}
         <main className="flex-1 relative bg-[radial-gradient(circle_at_center,_rgba(0,212,255,0.1)_0%,_rgba(10,11,30,1)_70%)] flex items-center justify-center overflow-hidden">
           
-          {/* CONDITIONAL RENDERING LOGIC */}
           {is3DModel ? (
-            /* 3D Mode */
             <div className="w-full h-full absolute inset-0 animate-in fade-in duration-700">
-               {/* Passes the GLB path to your AnatomyScene component */}
-               <AnatomyScene modelUrl={currentData.modelUrl} />
-               
-               {/* 3D Specific Overlay Hint */}
-               <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur px-4 py-1 rounded-full text-xs text-white/70 pointer-events-none border border-white/10">
-                  Click & Drag to Rotate • Scroll to Zoom
-               </div>
+               {/* 3. Pass the Ref to the Scene */}
+               <AnatomyScene ref={sceneRef} modelUrl={currentData.modelUrl} />
             </div>
           ) : (
-            /* 2D Mode (Fallback for images) */
             <div className="relative group cursor-pointer transition-all duration-500 ease-in-out">
               <img 
                 key={currentData.modelUrl} 
@@ -113,32 +127,51 @@ const Dashboard: React.FC = () => {
                 alt={currentData.title} 
                 className="max-h-[75vh] w-auto opacity-90 drop-shadow-[0_0_30px_rgba(0,212,255,0.2)] animate-in fade-in zoom-in duration-500"
               />
-              
-              {/* 2D Hotspots (Only show on images) */}
-              <div className="absolute top-[20%] left-[50%] translate-x-[-50%]">
-                <div className="relative">
-                  <div className="absolute -inset-4 bg-primary/30 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="w-4 h-4 bg-primary rounded-full border-2 border-white shadow-[0_0_15px_#00d4ff] animate-pulse"></div>
-                  <div className="absolute left-6 top-1/2 -translate-y-1/2 bg-black/80 backdrop-blur px-3 py-1 rounded border border-white/10 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-                    Interactive Node
+              {/* Hotspot for 2D images */}
+               <div className="absolute top-[20%] left-[50%] translate-x-[-50%]">
+                  <div className="relative">
+                    <div className="w-4 h-4 bg-primary rounded-full border-2 border-white shadow-[0_0_15px_#00d4ff] animate-pulse"></div>
                   </div>
-                </div>
-              </div>
+               </div>
             </div>
           )}
 
-          {/* Bottom Controls (Visible in both modes) */}
+          {/* 4. Connected Buttons */}
           <div className="absolute bottom-8 px-6 py-3 rounded-full glassmorphism flex gap-4 z-10">
-            <button className="material-symbols-outlined text-white hover:text-primary" title="Reset View">rotate_right</button>
-            <button className="material-symbols-outlined text-white hover:text-primary" title="Zoom In">zoom_in</button>
-            <button className="material-symbols-outlined text-white hover:text-primary" title="Zoom Out">zoom_out</button>
+            <button 
+                onClick={handleReset} 
+                className="material-symbols-outlined text-white hover:text-primary transition-colors" 
+                title="Reset View"
+            >
+                layers
+            </button>
+            <button 
+                onClick={handleRotate} 
+                className="material-symbols-outlined text-white hover:text-primary transition-colors" 
+                title="Rotate Right (3D Only)"
+            >
+                rotate_right
+            </button>
+            <button 
+                onClick={handleZoomIn} 
+                className="material-symbols-outlined text-white hover:text-primary transition-colors" 
+                title="Zoom In"
+            >
+                zoom_in
+            </button>
+            <button 
+                onClick={handleZoomOut} 
+                className="material-symbols-outlined text-white hover:text-primary transition-colors" 
+                title="Zoom Out"
+            >
+                zoom_out
+            </button>
           </div>
         </main>
 
-        {/* Right Sidebar: Info */}
+        {/* Right Sidebar Info - (Same as before) */}
         <aside className="w-80 border-l border-white/10 p-5 bg-card-dark/50 flex flex-col overflow-y-auto z-20">
           <div className="flex items-start gap-4 mb-6">
-            {/* Dynamic Thumbnail: Uses the image URL if it's an image, or a generic preview if it's 3D */}
             <div 
                 className="w-16 h-16 rounded-lg bg-cover bg-center border border-white/10" 
                 style={{
@@ -153,28 +186,17 @@ const Dashboard: React.FC = () => {
 
           <div className="space-y-4">
              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                <h3 className="flex items-center gap-2 text-sm font-bold mb-2 text-white">
-                   <span className="material-symbols-outlined text-lg text-primary">info</span> Description
-                </h3>
-                <p className="text-sm text-text-muted leading-relaxed">
-                   {currentData.description}
-                </p>
+                <p className="text-sm text-text-muted leading-relaxed">{currentData.description}</p>
              </div>
-
-             <div className="p-4 rounded-xl border border-white/5 hover:bg-white/5 transition-colors cursor-pointer">
-                <h3 className="flex items-center gap-2 text-sm font-bold text-white">
-                   <span className="material-symbols-outlined text-lg text-secondary">track_changes</span> Function
-                </h3>
-             </div>
-             
              <div className="mt-auto pt-4">
                <button className="w-full py-3 rounded-xl bg-gradient-to-r from-primary to-blue-500 text-background-dark font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
                  <span className="material-symbols-outlined">smart_toy</span>
-                 Ask AI about {currentData.title}
+                 Ask AI Assistant
                </button>
              </div>
           </div>
         </aside>
+
       </div>
     </div>
   );
