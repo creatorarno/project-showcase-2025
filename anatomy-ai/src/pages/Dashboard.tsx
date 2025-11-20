@@ -157,14 +157,14 @@ const Dashboard: React.FC = () => {
                 className="material-symbols-outlined text-white hover:text-primary transition-colors" 
                 title="Zoom In"
             >
-                zoom_in
+                zoom_out
             </button>
             <button 
                 onClick={handleZoomOut} 
                 className="material-symbols-outlined text-white hover:text-primary transition-colors" 
                 title="Zoom Out"
             >
-                zoom_out
+                zoom_in
             </button>
           </div>
         </main>
