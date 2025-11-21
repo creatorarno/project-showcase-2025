@@ -1,51 +1,53 @@
 import React, { useState, useRef } from 'react';
 import { Navbar } from '../components/Navbar';
 import { AnatomyScene, type AnatomySceneRef } from '../components/AnatomyScene';
-import { useNavigate } from 'react-router-dom'; // <--- 1. Import useNavigate
+import { useNavigate } from 'react-router-dom'; 
 
-// ... (Keep your existing SystemInfo type and systemsData object exactly as they were) ...
-// 1. Define the data structure for your systems
 type SystemInfo = {
   title: string;
   system: string;
   description: string;
   modelUrl: string; 
   icon: string;
+  scale?: number | [number, number, number]; 
 };
 
 const systemsData: Record<string, SystemInfo> = {
   Skeletal: {
     title: "Human Skeleton",
     system: "Skeletal System",
-    description: "The internal framework of the human body. It is composed of around 270 bones at birth – this total decreases to around 206 bones by adulthood after some bones get fused together.",
-    modelUrl: "https://cdn.pixabay.com/photo/2012/04/13/13/18/skeleton-32378_1280.png",
-    icon: "skeleton"
+    description: "The internal framework of the human body. It is composed of around 270 bones at birth...",
+    modelUrl: "models/skeleton.glb",
+    icon: "skeleton",
+    scale: 0.6 
   },
   Muscular: {
     title: "Muscular System",
     system: "Muscular System",
-    description: "The biological system of an organism that allows for movement. The muscular system in vertebrates is controlled through the nervous system although some muscles can be completely autonomous.",
+    description: "The biological system of an organism that allows for movement...",
     modelUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Gnaeus_Pompeius_Magnus_Louvre_Ma1251.jpg/800px-Gnaeus_Pompeius_Magnus_Louvre_Ma1251.jpg",
     icon: "accessibility_new"
   },
   Nervous: {
     title: "Nervous Network",
     system: "Nervous System",
-    description: "A highly complex part of an animal that coordinates its actions and sensory information by transmitting signals to and from different parts of its body.",
+    description: "A highly complex part of an animal that coordinates its actions...",
     modelUrl: "/models/brain.glb",
-    icon: "neurology"
+    icon: "neurology",
+    scale: 1
   },
   Circulatory: {
     title: "Human Heart",
     system: "Circulatory System",
-    description: "The heart is a muscular organ that pumps blood through the circulatory system's blood vessels. Blood carries oxygen and nutrients to the body while carrying metabolic waste.",
-    modelUrl: "/models/humanheart.glb", 
-    icon: "cardiology"
+    description: "The heart is a muscular organ that pumps blood through the circulatory system's blood vessels...",
+    modelUrl: "/models/heart_animated.glb", 
+    icon: "cardiology",
+    scale: 0.01
   },
   Digestive: {
     title: "Digestive Tract",
     system: "Digestive System",
-    description: "The gastrointestinal tract plus the accessory organs of digestion (the tongue, salivary glands, pancreas, liver, and gallbladder). Digestion involves the breakdown of food into smaller components.",
+    description: "The gastrointestinal tract plus the accessory organs of digestion...",
     modelUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Digestive_system_diagram_en.svg/800px-Digestive_system_diagram_en.svg.png",
     icon: "gastroenterology"
   }
@@ -53,29 +55,22 @@ const systemsData: Record<string, SystemInfo> = {
 
 const Dashboard: React.FC = () => {
   const [activeSystem, setActiveSystem] = useState<string>('Skeletal');
+  const [isPanMode, setIsPanMode] = useState(false); // <--- New State for Pan Mode
+  
   const currentData = systemsData[activeSystem];
   const is3DModel = currentData.modelUrl.endsWith('.glb') || currentData.modelUrl.endsWith('.gltf');
 
   const sceneRef = useRef<AnatomySceneRef>(null);
-  const navigate = useNavigate(); // <--- 2. Initialize Hook
+  const navigate = useNavigate();
 
   // Button Handlers
-  const handleRotate = () => {
-    if (is3DModel) sceneRef.current?.rotate();
-  };
+  const handleRotate = () => { if (is3DModel) sceneRef.current?.rotate(); };
+  const handleZoomIn = () => { if (is3DModel) sceneRef.current?.zoomIn(); };
+  const handleZoomOut = () => { if (is3DModel) sceneRef.current?.zoomOut(); };
+  const handleReset = () => { if (is3DModel) sceneRef.current?.reset(); };
   
-  const handleZoomIn = () => {
-    if (is3DModel) {
-        sceneRef.current?.zoomIn();
-    }
-  };
-
-  const handleZoomOut = () => {
-    if (is3DModel) sceneRef.current?.zoomOut();
-  };
-
-  const handleReset = () => {
-    if (is3DModel) sceneRef.current?.reset();
+  const togglePan = () => {
+      setIsPanMode(!isPanMode);
   };
 
   return (
@@ -113,7 +108,18 @@ const Dashboard: React.FC = () => {
           
           {is3DModel ? (
             <div className="w-full h-full absolute inset-0 animate-in fade-in duration-700">
-               <AnatomyScene ref={sceneRef} modelUrl={currentData.modelUrl} />
+               {/* Pass panMode to scene */}
+               <AnatomyScene 
+                  ref={sceneRef} 
+                  modelUrl={currentData.modelUrl} 
+                  scale={currentData.scale}
+                  panMode={isPanMode} 
+               />
+               
+               {/* Overlay Helper Text */}
+               <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur px-4 py-1 rounded-full text-xs text-white/70 pointer-events-none border border-white/10 transition-opacity">
+                  {isPanMode ? "Mode: PAN (Drag to Move)" : "Mode: ROTATE (Drag to Spin)"}
+               </div>
             </div>
           ) : (
             <div className="relative group cursor-pointer transition-all duration-500 ease-in-out">
@@ -140,13 +146,24 @@ const Dashboard: React.FC = () => {
             >
                 layers
             </button>
+            
+            {/* NEW PAN TOGGLE BUTTON */}
+            <button 
+                onClick={togglePan} 
+                className={`material-symbols-outlined transition-colors ${isPanMode ? 'text-primary' : 'text-white hover:text-primary'}`}
+                title="Toggle Pan/Move"
+            >
+                drag_pan
+            </button>
+
             <button 
                 onClick={handleRotate} 
                 className="material-symbols-outlined text-white hover:text-primary transition-colors" 
-                title="Rotate Right (3D Only)"
+                title="Rotate 45°"
             >
                 rotate_right
             </button>
+            
             <button 
                 onClick={handleZoomIn} 
                 className="material-symbols-outlined text-white hover:text-primary transition-colors" 
@@ -154,6 +171,7 @@ const Dashboard: React.FC = () => {
             >
                 zoom_out
             </button>
+            
             <button 
                 onClick={handleZoomOut} 
                 className="material-symbols-outlined text-white hover:text-primary transition-colors" 
@@ -164,7 +182,7 @@ const Dashboard: React.FC = () => {
           </div>
         </main>
 
-        {/* Right Sidebar Info */}
+        {/* Right Sidebar Info (Keep exactly as is) */}
         <aside className="w-80 border-l border-white/10 p-5 bg-card-dark/50 flex flex-col overflow-y-auto z-20">
           <div className="flex items-start gap-4 mb-6">
             <div 
@@ -184,7 +202,6 @@ const Dashboard: React.FC = () => {
                 <p className="text-sm text-text-muted leading-relaxed">{currentData.description}</p>
              </div>
              <div className="mt-auto pt-4">
-               {/* 👇 3. Updated Button Logic */}
                <button 
                  onClick={() => navigate('/tutor')} 
                  className="w-full py-3 rounded-xl bg-gradient-to-r from-primary to-blue-500 text-background-dark font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
