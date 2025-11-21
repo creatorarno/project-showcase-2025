@@ -37,7 +37,7 @@ export const Navbar: React.FC = () => {
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
           <span className="material-symbols-outlined text-primary text-3xl">neurology</span>
-          <span className="text-xl font-bold tracking-tight text-white">VR Anatomy AI</span>
+          <span className="text-xl font-bold tracking-tight text-white">Alt Anatomy AI</span>
         </Link>
 
         {/* Navigation Links */}
