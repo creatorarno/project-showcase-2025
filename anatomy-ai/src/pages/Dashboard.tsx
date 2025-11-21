@@ -32,7 +32,7 @@ const systemsData: Record<string, SystemInfo> = {
     title: "Nervous Network",
     system: "Nervous System",
     description: "A highly complex part of an animal that coordinates its actions and sensory information by transmitting signals to and from different parts of its body.",
-    modelUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Nervous_system_diagram.png/800px-Nervous_system_diagram.png",
+    modelUrl: "/models/brain.glb",
     icon: "neurology"
   },
   Circulatory: {
@@ -152,14 +152,14 @@ const Dashboard: React.FC = () => {
                 className="material-symbols-outlined text-white hover:text-primary transition-colors" 
                 title="Zoom In"
             >
-                add
+                zoom_out
             </button>
             <button 
                 onClick={handleZoomOut} 
                 className="material-symbols-outlined text-white hover:text-primary transition-colors" 
                 title="Zoom Out"
             >
-                remove
+                zoom_in
             </button>
           </div>
         </main>
