@@ -5,6 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 const Login = () => {
   const navigate = useNavigate();
 
+  const [fullName, setFullName] = useState(""); // <--- New State
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
@@ -12,7 +13,6 @@ const Login = () => {
   const [checkingSession, setCheckingSession] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // --- Logic Preserved from your code ---
   useEffect(() => {
     const check = async () => {
       const { data } = await supabase.auth.getSession();
@@ -31,12 +31,19 @@ const Login = () => {
 
     try {
       const cleanEmail = email.trim();
+      const cleanName = fullName.trim(); // <--- Clean name input
       let auth;
 
       if (isSignUp) {
+        // <--- Updated Sign Up Logic
         auth = await supabase.auth.signUp({
           email: cleanEmail,
           password,
+          options: {
+            data: {
+              full_name: cleanName, // This saves to 'raw_user_meta_data' in Supabase
+            },
+          },
         });
       } else {
         auth = await supabase.auth.signInWithPassword({
@@ -54,9 +61,7 @@ const Login = () => {
       setLoading(false);
     }
   };
-  // -------------------------------------
 
-  // Loading State Design
   if (checkingSession) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center bg-background-dark">
@@ -96,6 +101,24 @@ const Login = () => {
 
         <form onSubmit={handleAuth} className="space-y-5">
           
+          {/* Full Name Input (Only for Sign Up) */}
+          {isSignUp && (
+            <div className="space-y-1.5 animate-in slide-in-from-top-2 fade-in duration-300">
+              <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider ml-1">Full Name</label>
+              <div className="relative group">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-primary transition-colors text-xl">person</span>
+                <input
+                  type="text"
+                  placeholder="John Doe"
+                  className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+                  required={isSignUp} // Required only if signing up
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+
           {/* Email Input */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider ml-1">Email</label>

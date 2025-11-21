@@ -9,12 +9,10 @@ export const Navbar: React.FC = () => {
 
   // 1. Check User Status on Mount
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
     });
 
-    // Listen for changes (login/logout)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
@@ -25,7 +23,6 @@ export const Navbar: React.FC = () => {
   // 2. Handle Logout
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    // Redirect to login page after signing out
     navigate('/login'); 
   };
 
@@ -34,7 +31,7 @@ export const Navbar: React.FC = () => {
     `text-sm font-medium transition-colors ${isActive(path) ? 'text-primary' : 'text-text-muted hover:text-white'}`;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-background-dark/80 backdrop-blur-lg">
+    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-background-dark/80 backdrop-blur-lg font-display">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         
         {/* Logo */}
@@ -57,21 +54,25 @@ export const Navbar: React.FC = () => {
             <input 
               type="text" 
               placeholder="Search..." 
-              className="bg-card-dark/50 border border-white/10 rounded-full py-1.5 pl-10 pr-4 text-sm text-white focus:ring-primary focus:border-primary focus:outline-none"
+              className="bg-card-dark/50 border border-white/10 rounded-full py-1.5 pl-10 pr-4 text-sm text-white focus:ring-primary focus:border-primary focus:outline-none transition-all"
             />
           </div>
 
           {user ? (
             /* LOGGED IN VIEW */
             <div className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-primary to-secondary p-[2px]">
+                {/* 👇 CHANGED TO LINK: Clicking avatar goes to /profile */}
+                <Link to="/profile" className="h-8 w-8 rounded-full bg-gradient-to-tr from-primary to-secondary p-[2px] cursor-pointer hover:scale-110 transition-transform">
                   <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="User" className="rounded-full h-full w-full object-cover bg-black" />
-                </div>
+                </Link>
+                
+                {/* Small Logout Icon */}
                 <button 
                   onClick={handleLogout}
-                  className="text-xs font-bold text-red-400 hover:text-red-300 border border-red-500/30 bg-red-500/10 px-3 py-1.5 rounded-lg transition-colors"
+                  className="text-text-muted hover:text-red-400 transition-colors p-1"
+                  title="Log Out"
                 >
-                  Log Out
+                  <span className="material-symbols-outlined text-xl">logout</span>
                 </button>
             </div>
           ) : (

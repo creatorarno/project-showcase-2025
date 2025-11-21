@@ -5,21 +5,25 @@ import Dashboard from './pages/Dashboard';
 import Community from './pages/Community';
 import Tutor from './pages/Tutor';
 import Login from './pages/Login';
-import ProtectedRoute from './components/ProtectedRoutes'; // <--- Import the new wrapper
+import Profile from './pages/Profile'; // <--- 1. Import the Profile Page
+import ProtectedRoute from './components/ProtectedRoutes'; 
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* PUBLIC ROUTES (Accessible by everyone) */}
+        {/* PUBLIC ROUTES */}
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/tutor" element={<Tutor />} /> {/* Explicitly requested as Public */}
+        <Route path="/tutor" element={<Tutor />} />
 
-        {/* PRIVATE ROUTES (Require Login) */}
+        {/* PRIVATE ROUTES */}
         <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/community" element={<Community />} />
+            
+            {/* 👇 2. ADD THIS LINE HERE */}
+            <Route path="/profile" element={<Profile />} /> 
         </Route>
         
       </Routes>
