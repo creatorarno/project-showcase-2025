@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Navbar } from '../components/Navbar';
-// Import the Ref type so TypeScript knows what functions exist
 import { AnatomyScene, type AnatomySceneRef } from '../components/AnatomyScene';
+import { useNavigate } from 'react-router-dom'; // <--- 1. Import useNavigate
 
 // ... (Keep your existing SystemInfo type and systemsData object exactly as they were) ...
 // 1. Define the data structure for your systems
@@ -18,7 +18,7 @@ const systemsData: Record<string, SystemInfo> = {
     title: "Human Skeleton",
     system: "Skeletal System",
     description: "The internal framework of the human body. It is composed of around 270 bones at birth – this total decreases to around 206 bones by adulthood after some bones get fused together.",
-    modelUrl: "/models/skeleton.glb",
+    modelUrl: "https://cdn.pixabay.com/photo/2012/04/13/13/18/skeleton-32378_1280.png",
     icon: "skeleton"
   },
   Muscular: {
@@ -39,7 +39,6 @@ const systemsData: Record<string, SystemInfo> = {
     title: "Human Heart",
     system: "Circulatory System",
     description: "The heart is a muscular organ that pumps blood through the circulatory system's blood vessels. Blood carries oxygen and nutrients to the body while carrying metabolic waste.",
-    // Ensure 'humanheart.glb' is inside your 'public/models/' folder
     modelUrl: "/models/humanheart.glb", 
     icon: "cardiology"
   },
@@ -57,10 +56,10 @@ const Dashboard: React.FC = () => {
   const currentData = systemsData[activeSystem];
   const is3DModel = currentData.modelUrl.endsWith('.glb') || currentData.modelUrl.endsWith('.gltf');
 
-  // 1. Create a Ref to control the scene
   const sceneRef = useRef<AnatomySceneRef>(null);
+  const navigate = useNavigate(); // <--- 2. Initialize Hook
 
-  // 2. Button Handlers
+  // Button Handlers
   const handleRotate = () => {
     if (is3DModel) sceneRef.current?.rotate();
   };
@@ -68,8 +67,6 @@ const Dashboard: React.FC = () => {
   const handleZoomIn = () => {
     if (is3DModel) {
         sceneRef.current?.zoomIn();
-    } else {
-        // Optional: Add simple CSS zoom logic for images here if desired
     }
   };
 
@@ -116,7 +113,6 @@ const Dashboard: React.FC = () => {
           
           {is3DModel ? (
             <div className="w-full h-full absolute inset-0 animate-in fade-in duration-700">
-               {/* 3. Pass the Ref to the Scene */}
                <AnatomyScene ref={sceneRef} modelUrl={currentData.modelUrl} />
             </div>
           ) : (
@@ -127,7 +123,6 @@ const Dashboard: React.FC = () => {
                 alt={currentData.title} 
                 className="max-h-[75vh] w-auto opacity-90 drop-shadow-[0_0_30px_rgba(0,212,255,0.2)] animate-in fade-in zoom-in duration-500"
               />
-              {/* Hotspot for 2D images */}
                <div className="absolute top-[20%] left-[50%] translate-x-[-50%]">
                   <div className="relative">
                     <div className="w-4 h-4 bg-primary rounded-full border-2 border-white shadow-[0_0_15px_#00d4ff] animate-pulse"></div>
@@ -157,19 +152,19 @@ const Dashboard: React.FC = () => {
                 className="material-symbols-outlined text-white hover:text-primary transition-colors" 
                 title="Zoom In"
             >
-                zoom_out
+                add
             </button>
             <button 
                 onClick={handleZoomOut} 
                 className="material-symbols-outlined text-white hover:text-primary transition-colors" 
                 title="Zoom Out"
             >
-                zoom_in
+                remove
             </button>
           </div>
         </main>
 
-        {/* Right Sidebar Info - (Same as before) */}
+        {/* Right Sidebar Info */}
         <aside className="w-80 border-l border-white/10 p-5 bg-card-dark/50 flex flex-col overflow-y-auto z-20">
           <div className="flex items-start gap-4 mb-6">
             <div 
@@ -189,7 +184,11 @@ const Dashboard: React.FC = () => {
                 <p className="text-sm text-text-muted leading-relaxed">{currentData.description}</p>
              </div>
              <div className="mt-auto pt-4">
-               <button className="w-full py-3 rounded-xl bg-gradient-to-r from-primary to-blue-500 text-background-dark font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+               {/* 👇 3. Updated Button Logic */}
+               <button 
+                 onClick={() => navigate('/tutor')} 
+                 className="w-full py-3 rounded-xl bg-gradient-to-r from-primary to-blue-500 text-background-dark font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+               >
                  <span className="material-symbols-outlined">smart_toy</span>
                  Ask AI Assistant
                </button>
